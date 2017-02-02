@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Card Db Maneger</title>
+  <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
+
+  <style>
+    .pane {
+      padding: :30px;
+      margin:10px auto;
+    }
+  </style>
+
+  <script>
+    const $ = require('jquery')
+    var util = require('./util')
+    var file_path
+    var arr_keys
+
+    // load file
+    window.addEventListener('DOMContentLoaded', function() {
+      document.querySelector("#file").addEventListener('change', function(e) {
+        var file_obj = new Object;
+        if (window.File) {
+          var input = document.querySelector('#file').files[0];
+          var reader = new FileReader();
+          reader.addEventListener('load', function (e) {
+            file_obj.rawdata = reader.result
+            file_obj.objdata = util.convertCSVtoObject(file_obj.rawdata);
+            file_path = input.path
+            console.log(input)
+            // var left_keys = check_keys(file_obj.objdata)
+            // if (left_keys.length > 1) {
+            //   error_msg()
+            //   return
+            // }
+            make_legend(file_obj.objdata)
+          }, true);
+          reader.readAsText(input, 'utf-8');
+        }
+      }, true);
+    });
+
+    function GetElementsDOM () {
+      // get values from "form"
+      var formObjects=document.getElementById("form");
+      var S = formObjects[0].value
+      var legend_obj = new Object()
+
+      for( var i = 1; i < formObjects.length; i++) {
+        legend_obj[formObjects[i].name] = formObjects[i].value
+      }
+      var json_data = JSON.stringify(legend_obj)
+      console.log(json_data)
+
+      util.json_save(json_data)
+      var res = util.analysis(file_path, S)
+      var msg = document.getElementById("msg");
+      if (res) {
+        msg.innerHTML = "succeeded"
+      }else{
+        msg.innerHTML = "failed"
+      }
+    }
+
+    // function check_keys(data) {
+    //   var required_keys = ["number", "group", "V", "Ww", "Wd", "W0h", "W0d"]
+    //   console.log(Object.keys(arr_keys).length)
+    //   console.log(required_keys)
+    //   console.log(arr_keys)
+    //   for (var key in required_keys) {
+    //     console.log(key)
+    //     if ( arr_keys.indexOf(key) >= 0) {
+    //       for(j=0; j<required_keys.length; j++){
+    //         if(required_keys[j] == key){
+    //           console.log(key)
+    //           required_keys.splice(j, 1);
+    //         }
+    //       }
+    //     }
+    //   }
+    //   console.log(required_keys)
+    //   return required_keys
+    // }
+
+    function make_legend(data) {
+      var legends = []
+      $("#graph_setting").append("<th><td>Line</td><td>Marker</td><td>Cost (¥/kg)</td></th>")
+      for (var i = 1; i < Object.keys(data).length; i++) {
+        var key = data[i]["group"]
+        if ( legends.indexOf(key) == -1) {
+          legends.push(key)
+          option_line = '<option value="d">Default</option> <option value="h">Hight Light</option> <option value="c">Control</option>'
+          option_marker = '<option value="sw">□</option> <option value="dw">◇</option> <option value="8w">○</option> <option value="*w">☆</option> <option value="^w">△</option>'
+          option_marker += '<option value="sb">■</option> <option value="db">◆</option> <option value="8b">●</option> <option value="*b">★</option> <option value="^b">▲</option>'
+          $("#graph_setting").append('<tr><td><p>' + key +'</p></td> <td><select name="' + key + '_line"> '+ option_line +'</select></td><td><select name="' + key + '_marker"> '+ option_marker +'</select></td><td><input class="form-control" name="'+key+'_cost" type="text" /></td></tr>')
+        }
+      }
+    }
+
+    function error_msg() {
+      var msg = "";
+      msg += " ファイルは列名を以下の項目で作成し，CSV形式でアップロードしてください"
+      msg += "　　必須測定項目：number = 試験体番号, group = 補修グループ, V = 体積, "
+      msg += "　　　　　　　　　Wd = 絶乾重量, Ww = 表乾重量, W0d or W0h = 乾燥0時間目の重量"
+      msg += "　　経時測定項目：Wih = 乾燥i時間目の重量, Wid = 乾燥i日目の重量"
+      msg += "　　　　　　　　　(例：W3h = 乾燥3時間目の重量, W5d =乾燥5日目の重量)"
+
+      alert(msg)
+    }
+
+    // function insertDB(){
+    //   var mongojs = require('mongojs')
+    //   // specify database and collection
+    //   var db = mongojs("local", ["cards"])
+    //   // upsert
+    //   db.cards.update( { "1100_r" : json["1100_r"]}, json, {upsert: true} )
+    //   // debug
+    //   console.log( "ok" )
+    //   // message: succeed
+    //   var msg = document.getElementById("msg");
+    //   if (true) {
+    //     msg.innerHTML = "calculation success"
+    //   }else{
+    //     msg.innerHTML = "calculation failed. Please check your file style."
+    //   }
+    // }
+
+  </script>
+</head>
+<body>
+  <div class="window">
+    <!-- <header class="toolbar toolbar-header">
+      <h1 class="title">Card DB Manager</h1>
+    </header> -->
+
+    <div class="window-content">
+      <div class="pane-group">
+        <div class="pane-sm sidebar">
+          <nav class="nav-group">
+            <h5 class="nav-group-title">Favorites</h5>
+            <a class="nav-group-item active">
+              <span class="icon icon-download"></span>
+              Insert
+            </a>
+
+            <a class="nav-group-item unactive" href="./show.html">
+              <span class="icon icon-signal"></span>
+              Show
+            </span>
+            </a>
+            
+<!--             <a class="nav-group-item unactive" href="./db.html">
+              <span class="icon icon-folder"></span>
+              Data
+            </span>
+            </a> -->
+            <!-- <span class="nav-group-item">
+              <span class="icon icon-print"></span>
+              Applications
+            </span>
+            <span class="nav-group-item">
+              <span class="icon icon-cloud"></span>
+              Desktop
+            </span> -->
+          </nav>
+        </div>
+
+        <div class="pane">
+          <p>1. Upload your file</p>
+          <input id="file" class="form-control" name="file" type="file" />
+
+          <p>2. Value Setting</p>
+          <form action="#" id="form">
+            <div class="form-group">
+              <label> Area of Surface [cm2]</label>
+              <input class="form-control" placeholder="12.5" type="text" name="surface_area" id="surface_area" />
+            </div>
+
+          <p>3. Group Setting</p>
+            <div class="form-group">
+              <table>
+              <div id="graph_setting"></div>
+              </table>
+            </div>
+
+          </form>
+          <div class="form-actions">
+            <button id="submit" class="btn btn-form btn-default" onclick="GetElementsDOM()"/>submit</button>
+            <div id="msg"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="toolbar toolbar-footer">
+      <h1 class="title"></h1>
+    </footer>
+
+  </div>
+
+
+</body>
+</html>

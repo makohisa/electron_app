@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Data</title>
+  <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
+
+  <style>
+    .pane {
+      padding: :30px;
+      margin:10px auto;
+    }
+  </style>
+  <script>
+    const $ = require('jquery')
+    var util = require('./util')
+
+    var files = ['./results/diff_coef.csv', './results/param.csv', './results/time_R.csv']
+    console.log(files)
+    for (var i = files.length - 1; i >= 0; i--) {
+      var text
+      text = util.getCSV(files[i])
+      console.log(text)
+    }
+
+  </script>
+</head>
+<body>
+  <div class="window">
+    <!-- <header class="toolbar toolbar-header">
+      <h1 class="title">Card DB Manager</h1>
+    </header> -->
+
+    <div class="window-content">
+      <div class="pane-group">
+        <div class="pane-sm sidebar">
+          <nav class="nav-group">
+            <h5 class="nav-group-title">Favorites</h5>
+            <a class="nav-group-item unactive" href="./index.html">
+              <span class="icon icon-download"></span>
+              Insert
+            </a>
+
+            <a class="nav-group-item unactive" href="./show.html">
+              <span class="icon icon-signal"></span>
+              Show
+            </span>
+            </a>
+
+<!--             <a class="nav-group-item active" href="./db.html">
+              <span class="icon icon-folder"></span>
+              Data
+            </span>
+            </a> -->
+            <!-- <span class="nav-group-item">
+              <span class="icon icon-print"></span>
+              Applications
+            </span>
+            <span class="nav-group-item">
+              <span class="icon icon-cloud"></span>
+              Desktop
+            </span> -->
+          </nav>
+        </div>
+
+        <div class="pane">
+            <table class="table-striped" id="table">
+              
+            </table>
+          </div>
+
+      </div>
+    </div>
+
+    <footer class="toolbar toolbar-footer">
+      <h1 class="title"></h1>
+    </footer>
+
+  </div>
+
+
+</body>
+</html>

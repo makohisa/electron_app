@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Card Db Maneger</title>
+  <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
+
+  <style>
+    .pane {
+      padding: :30px;
+      margin:10px auto;
+    }
+  </style>
+
+  <script>
+    const $ = require('jquery')
+    var util = require('./util')
+
+    var file_name = ""
+    var json = ""
+
+
+    // load file
+    window.addEventListener('DOMContentLoaded', function() {
+      for (i =1; i >= 0; i--) {
+        var targetImg = document.getElementById('img'+i);
+        var orgWidth = targetImg.width; 
+        var orgHeight = targetImg.height;
+        targetImg.width = 800;
+        targetImg.height = orgHeight * (targetImg.width / orgWidth); 
+      }
+      // document.querySelector("#file").addEventListener('change', function(e) {
+      //   if (window.File) {
+      //     var input = document.querySelector('#file').files[0];
+      //     var reader = new FileReader();
+      //     reader.addEventListener('load', function (e) {
+      //       var output = reader.result
+      //       file_path = input.path
+      //       console.log(input)
+      //     }, true);
+      //     reader.readAsText(input, 'utf-8');
+
+      //     // post arranged values into "form"
+      //     // $.getJSON(input.path, function( data ) {
+      //     //   file_info.file_content = new Array()
+      //     //   $.each( data[0], function( key, val_raw ) {
+      //     //     file_info.file_content[key] = val_raw
+
+      //     //     if (key === "1100_r" && val_raw.length === 32) {
+      //     //       //edit val
+      //     //       var val = val_raw.substring(4,20)
+      //     //       // set default values in "form"
+      //     //       $(document).ready(function(){
+      //     //         $("#number").val(val);
+      //     //       });
+
+      //     //     }else if (key === "1300_p") {
+      //     //       //edit val
+      //     //       var num = val_raw.substring(2,4) + val_raw.substring(0,2)
+      //     //       var val = parseInt(Number(num),16)
+      //     //       // set default values in "form"
+      //     //       $(document).ready(function(){
+      //     //         $("#storage").val(val);
+      //     //       });
+      //     //     }
+      //     //   });
+      //     // });
+      //   }
+      // }, true);
+    });
+
+  </script>
+</head>
+<body>
+  <div class="window">
+    <!-- <header class="toolbar toolbar-header">
+      <h1 class="title">Card DB Manager</h1>
+    </header> -->
+
+    <div class="window-content">
+      <div class="pane-group">
+        <div class="pane-sm sidebar">
+          <nav class="nav-group">
+            <h5 class="nav-group-title">Favorites</h5>
+            <a class="nav-group-item unactive" href="./index.html">
+              <span class="icon icon-download"></span>
+              Insert
+            </a>
+
+            <a class="nav-group-item active" href="./show.html">
+              <span class="icon icon-signal"></span>
+              Show
+            </span>
+            </a>
+
+<!--             <a class="nav-group-item unactive" href="./db.html">
+              <span class="icon icon-folder"></span>
+              Data
+            </span>
+            </a> -->
+            <!-- <span class="nav-group-item">
+              <span class="icon icon-print"></span>
+              Applications
+            </span>
+            <span class="nav-group-item">
+              <span class="icon icon-cloud"></span>
+              Desktop
+            </span> -->
+          </nav>
+        </div>
+
+        <div class="pane">
+          <img src="./results/R_D_no_color.png" id="img0" />
+          <img src="./results/time_R_no_color.png" id="img1" />
+        </div>
+
+      </div>
+    </div>
+
+    <footer class="toolbar toolbar-footer">
+      <h1 class="title"></h1>
+    </footer>
+
+  </div>
+
+
+</body>
+</html>
