@@ -1,7 +1,8 @@
 # electron_app
 electron app for my graduation
 
-use app
+
+(A)use app
 
 1. install anaconda (python 3.6 version)
 
@@ -13,7 +14,8 @@ https://www.continuum.io/downloads
 
 4. click the icon "electron_app"
 
-sorce code
+
+(B)sorce code
 
 1. install electron
 
