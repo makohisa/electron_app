@@ -16,15 +16,18 @@ https://www.continuum.io/downloads
 
 
 (B)sorce code
+1. install anaconda (python 3.6 version)
 
-1. install electron
+https://www.continuum.io/downloads
+
+2. install electron
 
 http://qiita.com/nyanchu/items/15d514d9b9f87e5c0a29
 
-2. git clone this directory
+3. git clone this directory
 
-3. cd this directory 
+4. cd this directory 
 
-4. $ "npm install"
+5. $ "npm install"
 
-5. $ "npm start"
+6. $ "npm start"
