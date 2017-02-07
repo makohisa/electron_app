@@ -16,6 +16,7 @@ https://www.continuum.io/downloads
 
 
 (B)sorce code
+
 1. install anaconda (python 3.6 version)
 
 https://www.continuum.io/downloads
