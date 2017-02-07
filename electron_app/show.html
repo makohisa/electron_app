@@ -5,7 +5,6 @@
   <title>Treatment Selecter</title>
   <link rel="stylesheet" href="./photon/css/photon.min.css" type="text/css">
   <link rel="stylesheet" href="./node_modules/swiper/dist/css/swiper.min.css">
-
   <style>
     .pane {
       padding: 30px;
@@ -41,6 +40,8 @@
     var util = require('./util')
     const fs = require('fs-extra');
     const resultsFolder = './results/'
+    var iconv = require('iconv-lite');
+    var csv = require('csv');
 
     var project_names = new Object()
 
@@ -117,6 +118,46 @@
 
     function makePane(project_name, callback) {
       var promise = showImgs(project_name);
+
+      var obj = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
+      var controllPerformance = 0;
+      var controllCostPerformance = 0;
+      var R = 0.2;
+
+      var rs = fs.createReadStream('./results/'+project_name+'/diffcoef.csv')
+        .pipe(iconv.decodeStream('SJIS'))
+        .pipe(iconv.encodeStream('UTF-8'))
+        .pipe(csv.parse());
+
+      rs.pipe(csv.transform(function(csvList) {
+        if (csvList[0]!==""){
+          var performance = eval(csvList[1].replace(/sqrt/g , "Math.sqrt"));
+          var cost = obj[csvList[0]+"_cost"] === "" ? 1 : obj[csvList[0]+"_cost"];
+
+          if (obj[csvList[0]+"_line"] === "c") {
+            controllPerformance = performance;
+            controllCostPerformance =  performance/cost;
+          }
+        }
+      }));
+
+      rs.pipe(csv.transform(function(csvList) {
+        if (csvList[0]!==""){
+          var performance = eval(csvList[1].replace(/sqrt/g , "Math.sqrt"));
+          var cost = obj[csvList[0]+"_cost"] === "" ? 1 : obj[csvList[0]+"_cost"];
+
+          var insert = "";
+          insert += '<tr>'
+          insert += '<td>'+csvList[0]+'</td>';
+          insert += '<td>'+Math.round((performance-controllPerformance)*10)+'</td>';
+          insert += '<td>'+Math.round(((parseFloat(performance)/cost)-controllCostPerformance)*10)+'</td>';
+          insert += '</tr>';
+          $("#overview_table").append(insert);
+        }
+      }));
+
+
+
 
       promise.then(function(){
         var swiper = new Swiper('.swiper-container', {
@@ -218,12 +259,14 @@
   </script>
 </head>
 <body>
+
+
   <div class="window">
     <!-- <header class="toolbar toolbar-header">
       <h1 class="title">Card DB Manager</h1>
     </header> -->
 
-    <div class="window-content">
+   <div class="window-content">
       <div class="pane-group">
         <div class="pane-sm sidebar">
           <ul class="list-group">
@@ -235,7 +278,22 @@
         </div>
 
         <div class="pane">
+          <div>
+            <div>Overview</div>
+            <table class="table-striped">
+              <thead>
+                <tr>
+                  <td>GROUP</td>
+                  <td>PERFORMANCE</td>
+                  <td>COST-PERFORMANCE</td>
+                </tr>
+              </thead>  
+              <tbody id="overview_table">
+              </tbody>  
+            </table>
+          </div>
           <div id="img_area">
+            <div>Detail</div>
             <div class="swiper-container">
               <div class="swiper-wrapper"></div>
               <div class="swiper-pagination"></div>

@@ -1,5 +1,7 @@
 'use strict'
 
+// require('jquery');
+// require('bootstrap');
 // index.js (main process)
 // - GUI (renderer process)
 // - GUI (renderer process)
@@ -49,9 +51,9 @@ function showDBWindow() {
 
 function createMainWindow() {
   Menu.setApplicationMenu(menu)
-  mainWindow = new BrowserWindow({width: 1100, height: 740})
+  mainWindow = new BrowserWindow({width: 1100, height: 740, 'node-integration': false}); 
   mainWindow.loadURL(`file://${__dirname}/index.html`)
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
   mainWindow.on('closed', function() {
     mainWindow = null
   })
