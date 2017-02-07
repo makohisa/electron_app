@@ -27,29 +27,32 @@ import sys
 
 def file_error():
 	print("File style is not correct. Please check your index.(ex. Ww Wd W1h W3d)")
-	exit(1)
 
-def arrange(rawdf, dt, S):
+def arrange(rawdf, dt):
     # rawdataをコピー
     tmp =rawdf.copy()
 
     weight = {}
     for x in tmp.columns:
-        if x == "number" or x == "group" or x == "V" or x == "Ww" or x == "Wd":
+        basic_elems = ["number", "group", "V", "S", "Ww", "Wd"]
+        x = x.strip(" ")
+
+        if x in basic_elems:
             pass
         else:
             if x[-1] =="d":
                 day = float(x[1:].rstrip("d"))
+                weight[day] = x
             elif x[-1] == "h":
                 day = float(x[1:].rstrip("h"))/24
+                weight[day] = x
             else:
+                print(day)
                 file_error()
-            weight[day]=x
-
-    print(weight)
+                pass
     
-    # S: 被補修面表面積    V2: 試験体体積     depth: 試験体厚さ 
-    tmp['depth'] = tmp['V']/S
+    # S: 補修面の表面積    V2: 試験体体積     depth: 試験体厚さ 
+    tmp['depth'] = tmp['V']/tmp['S']
     
     # amount: 含水量   ratio: 含水率     eta: ボルツマン変換 (λ = x / sqrt(t) )
     for t in weight.keys():
@@ -114,7 +117,6 @@ def make_legends(data):
     facecolor = {}
     for elem in data.keys():
         if "marker" in elem :
-            print(data[elem][-1])
             group_name = elem.rstrip("_marker")
             point[group_name] = data[elem][0]
 

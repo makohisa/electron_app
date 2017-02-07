@@ -2,13 +2,14 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>Card Db Maneger</title>
+  <title>Treatment Selecter</title>
   <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
 
   <style>
-    .pane {
-      padding: :30px;
-      margin:10px auto;
+    #form {
+      margin:30px auto;
+      padding: 20px auto;
+      width:300px;
     }
   </style>
 
@@ -20,8 +21,9 @@
 
     // load file
     window.addEventListener('DOMContentLoaded', function() {
-      document.querySelector("#file").addEventListener('change', function(e) {
+        document.querySelector("#file").addEventListener('change', function(e) {
         var file_obj = new Object;
+        $('#graph_setting_title').show()
         if (window.File) {
           var input = document.querySelector('#file').files[0];
           var reader = new FileReader();
@@ -29,12 +31,7 @@
             file_obj.rawdata = reader.result
             file_obj.objdata = util.convertCSVtoObject(file_obj.rawdata);
             file_path = input.path
-            console.log(input)
-            // var left_keys = check_keys(file_obj.objdata)
-            // if (left_keys.length > 1) {
-            //   error_msg()
-            //   return
-            // }
+            console.log(input);
             make_legend(file_obj.objdata)
           }, true);
           reader.readAsText(input, 'utf-8');
@@ -45,23 +42,21 @@
     function GetElementsDOM () {
       // get values from "form"
       var formObjects=document.getElementById("form");
-      var S = formObjects[0].value
+      var project_name = formObjects[0].value
       var legend_obj = new Object()
 
-      for( var i = 1; i < formObjects.length; i++) {
+      for( var i = 0; i < formObjects.length; i++) {
         legend_obj[formObjects[i].name] = formObjects[i].value
       }
       var json_data = JSON.stringify(legend_obj)
       console.log(json_data)
 
       util.json_save(json_data)
-      var res = util.analysis(file_path, S)
-      var msg = document.getElementById("msg");
-      if (res) {
-        msg.innerHTML = "succeeded"
-      }else{
-        msg.innerHTML = "failed"
-      }
+      promise = util.analysis(project_name, file_path)
+      // 待機画面
+      promise.done(function(){
+        location.href = "./show.html";
+      })
     }
 
     // function check_keys(data) {
@@ -98,11 +93,16 @@
         }
       }
     }
+    
+    function ShowDB() {
+      // show db.html
+
+    }
 
     function error_msg() {
       var msg = "";
       msg += " ファイルは列名を以下の項目で作成し，CSV形式でアップロードしてください"
-      msg += "　　必須測定項目：number = 試験体番号, group = 補修グループ, V = 体積, "
+      msg += "　　必須測定項目：number = 試験体番号, group = 補修グループ, V = 体積, S = 補修面の面積, "
       msg += "　　　　　　　　　Wd = 絶乾重量, Ww = 表乾重量, W0d or W0h = 乾燥0時間目の重量"
       msg += "　　経時測定項目：Wih = 乾燥i時間目の重量, Wid = 乾燥i日目の重量"
       msg += "　　　　　　　　　(例：W3h = 乾燥3時間目の重量, W5d =乾燥5日目の重量)"
@@ -110,97 +110,60 @@
       alert(msg)
     }
 
-    // function insertDB(){
-    //   var mongojs = require('mongojs')
-    //   // specify database and collection
-    //   var db = mongojs("local", ["cards"])
-    //   // upsert
-    //   db.cards.update( { "1100_r" : json["1100_r"]}, json, {upsert: true} )
-    //   // debug
-    //   console.log( "ok" )
-    //   // message: succeed
-    //   var msg = document.getElementById("msg");
-    //   if (true) {
-    //     msg.innerHTML = "calculation success"
-    //   }else{
-    //     msg.innerHTML = "calculation failed. Please check your file style."
-    //   }
-    // }
+    function Save(){
+      var mongojs = require('mongojs')
+      // specify database and collection
+      var db = mongojs("local", ["cards"])
+      // upsert
+      db.cards.update( { "1100_r" : json["1100_r"]}, json, {upsert: true} )
+      // debug
+      console.log( "ok" )
+      // message: succeed
+      var msg = document.getElementById("msg");
+      if (true) {
+        msg.innerHTML = "calculation success"
+      }else{
+        msg.innerHTML = "calculation failed. Please check your file style."
+      }
+    }
 
   </script>
 </head>
 <body>
   <div class="window">
-    <!-- <header class="toolbar toolbar-header">
-      <h1 class="title">Card DB Manager</h1>
-    </header> -->
 
     <div class="window-content">
-      <div class="pane-group">
-        <div class="pane-sm sidebar">
-          <nav class="nav-group">
-            <h5 class="nav-group-title">Favorites</h5>
-            <a class="nav-group-item active">
-              <span class="icon icon-download"></span>
-              Insert
-            </a>
-
-            <a class="nav-group-item unactive" href="./show.html">
-              <span class="icon icon-signal"></span>
-              Show
-            </span>
-            </a>
-            
-<!--             <a class="nav-group-item unactive" href="./db.html">
-              <span class="icon icon-folder"></span>
-              Data
-            </span>
-            </a> -->
-            <!-- <span class="nav-group-item">
-              <span class="icon icon-print"></span>
-              Applications
-            </span>
-            <span class="nav-group-item">
-              <span class="icon icon-cloud"></span>
-              Desktop
-            </span> -->
-          </nav>
+      <form action="#" id="form">
+        <div class="form-group">
+          <label> <br> Project Name</label>
+          <input class="form-control" placeholder="MyProject" type="text" name="project_name" id="project_name" />
         </div>
 
-        <div class="pane">
-          <p>1. Upload your file</p>
+        <div class="form-group">
+          <label> Upload your file</label>
           <input id="file" class="form-control" name="file" type="file" />
-
-          <p>2. Value Setting</p>
-          <form action="#" id="form">
-            <div class="form-group">
-              <label> Area of Surface [cm2]</label>
-              <input class="form-control" placeholder="12.5" type="text" name="surface_area" id="surface_area" />
-            </div>
-
-          <p>3. Group Setting</p>
-            <div class="form-group">
-              <table>
-              <div id="graph_setting"></div>
-              </table>
-            </div>
-
-          </form>
-          <div class="form-actions">
-            <button id="submit" class="btn btn-form btn-default" onclick="GetElementsDOM()"/>submit</button>
-            <div id="msg"></div>
           </div>
+
+        <div class="form-group">
+          <div id="graph_setting_title" style="display: none"><label> <br> Graph Setting</label></div>
+          <table>
+          <div id="graph_setting"></div>
+          </table>
         </div>
 
-      </div>
+        <div class="form-actions">
+          <button id="submit" class="btn btn-form btn-default" onclick="GetElementsDOM()"/>Calculate</button>
+        </div>
     </div>
 
-    <footer class="toolbar toolbar-footer">
-      <h1 class="title"></h1>
+    <footer class="toolbar toolbar-footer" >
+      <div class="toolbar-actions">
+        <button type="button" class="btn btn-default" onclick="location.href='./show.html'">
+          <span class="icon icon-folder"></span>
+        </button>
+      </div>
     </footer>
 
   </div>
-
-
 </body>
 </html>

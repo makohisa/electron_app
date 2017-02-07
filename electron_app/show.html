@@ -2,33 +2,179 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>Card Db Maneger</title>
-  <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
+  <title>Treatment Selecter</title>
+  <link rel="stylesheet" href="./photon/css/photon.min.css" type="text/css">
+  <link rel="stylesheet" href="./node_modules/swiper/dist/css/swiper.min.css">
 
   <style>
     .pane {
-      padding: :30px;
+      padding: 30px;
       margin:10px auto;
+    }
+    .swiper-container {
+        width: 100%;
+        height: 100%;
+    }
+    .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #fff;
+        /* Center slide text vertically */
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-box-pack: center;
+        -ms-flex-pack: center;
+        -webkit-justify-content: center;
+        justify-content: center;
+        -webkit-box-align: center;
+        -ms-flex-align: center;
+        -webkit-align-items: center;
+        align-items: center;
     }
   </style>
 
+  <script src="./node_modules/swiper/dist/js/swiper.min.js" ></script>
   <script>
     const $ = require('jquery')
     var util = require('./util')
+    const fs = require('fs-extra');
+    const resultsFolder = './results/'
 
-    var file_name = ""
-    var json = ""
+    var project_names = new Object()
 
+    function collectNames() {
+      var deferred = new $.Deferred();
+      fs.readdir(resultsFolder, (err, files) => {
+        if (err) throw err
+        project_names = files
+        if (project_names != undefined) {
+          deferred.resolve()
+        }
+      });
+      return deferred.promise()
+    }
 
-    // load file
-    window.addEventListener('DOMContentLoaded', function() {
-      for (i =1; i >= 0; i--) {
-        var targetImg = document.getElementById('img'+i);
-        var orgWidth = targetImg.width; 
-        var orgHeight = targetImg.height;
-        targetImg.width = 800;
-        targetImg.height = orgHeight * (targetImg.width / orgWidth); 
+    function makeList(project_names) {
+      // when collect_names() is done, do bellow
+      var s = ""
+      for ( var i = 0; i < project_names.length; i++ ) {
+        s += "<li onmousedown='changeProject(this)' class='list-group-item' id='"+ project_names[i] +"'><div class='media-body'><strong>"+ project_names[i] +"</strong></div></li>"
       }
+      $("#db_list").empty()
+      $("#db_list").append(s)
+    }
+
+    function setProject() {
+      var deferred = new $.Deferred();
+      $(document).ready(function () {
+        $.getJSON("data.json", function(data){
+          project_name = data['project_name']
+          if (project_names != undefined) {
+            deferred.resolve()
+          }
+        });
+      });
+      return deferred.promise()
+    }
+
+    function showContents() {
+      // body..
+      promise = collectNames()
+
+      promise.done(function(){
+        makeList(project_names)
+      })
+
+      promise2 = setProject()
+      promise2.done(function(){
+        makePane(project_name)
+        $("#"+project_name).addClass("active")
+      })
+    }
+
+    window.onload = showContents()
+    // window.addEventListener('DOMContentLoaded', function() {
+
+    function showImgs(project_name) {
+      var deferred = new $.Deferred();
+
+      $(".swiper-wrapper").empty()
+      var s = ""
+      s += '<div class="swiper-slide"><img src="./results/' + project_name + '/time_R_no_color.png" width="100%" height="100%" /></div>'
+      s += '<div class="swiper-slide"><img src="./results/' + project_name + '/R_D_no_color.png" width="100%" height="100%" /></div>'
+      s += '<div class="swiper-slide"><img src="./results/' + project_name + '/diffcoef.png" width="100%" height="100%" /></div>'
+      var target = $(s)
+      $(".swiper-wrapper").append(target)
+
+      target.ready(function(){
+        deferred.resolve();
+      })
+
+      return deferred.promise()
+    }
+
+    function makePane(project_name, callback) {
+      var promise = showImgs(project_name);
+
+      promise.then(function(){
+        var swiper = new Swiper('.swiper-container', {
+          pagination: '.swiper-pagination',
+          paginationClickable: true
+        });
+      })
+    }
+
+    function changePane(new_project_name) {
+      // body...
+      var deferred = new $.Deferred();
+      project_name = new_project_name
+      if (project_name == new_project_name) {
+        deferred.resolve()
+      }
+      return deferred.promise()
+    }
+
+    function changeProject(element) {
+      console.log("change")
+      console.log(element.id)
+      $("#"+project_name).removeClass("active")
+      $(document).ready(function(){
+        promise = changePane(element.id)
+        promise.done(function(){
+          makePane(project_name)
+          $("#"+project_name).addClass("active")
+        })
+      })
+    }
+
+    function rmProject(argument) {
+      // body...
+      var deferred = new $.Deferred();
+      var rm_project = resultsFolder+"/"+project_name
+      fs.removeSync(rm_project)
+      try{
+        fs.statSync(rm_project)
+      } catch(err) {
+        if(err.code === 'ENOENT'){
+          deferred.resolve()
+        }
+      }
+      return deferred.promise()
+    }
+
+    function Delete() {
+      var res = confirm("Delete " + project_name + " ?")
+      if (res == true) {
+        $("#"+project_name).remove()
+        promise = rmProject()
+        promise.done(showContents())
+      } else {
+        alert("Canceled")
+      }
+    }
+
       // document.querySelector("#file").addEventListener('change', function(e) {
       //   if (window.File) {
       //     var input = document.querySelector('#file').files[0];
@@ -67,7 +213,7 @@
       //     // });
       //   }
       // }, true);
-    });
+      // });
 
   </script>
 </head>
@@ -80,45 +226,38 @@
     <div class="window-content">
       <div class="pane-group">
         <div class="pane-sm sidebar">
-          <nav class="nav-group">
-            <h5 class="nav-group-title">Favorites</h5>
-            <a class="nav-group-item unactive" href="./index.html">
-              <span class="icon icon-download"></span>
-              Insert
-            </a>
-
-            <a class="nav-group-item active" href="./show.html">
-              <span class="icon icon-signal"></span>
-              Show
-            </span>
-            </a>
-
-<!--             <a class="nav-group-item unactive" href="./db.html">
-              <span class="icon icon-folder"></span>
-              Data
-            </span>
-            </a> -->
-            <!-- <span class="nav-group-item">
-              <span class="icon icon-print"></span>
-              Applications
-            </span>
-            <span class="nav-group-item">
-              <span class="icon icon-cloud"></span>
-              Desktop
-            </span> -->
-          </nav>
+          <ul class="list-group">
+            <li class="list-group-header">
+              <!-- <input class="form-control" type="text" placeholder="Search for someone"> -->
+            </li>
+            <div id="db_list"></div>
+          </ul>
         </div>
 
         <div class="pane">
-          <img src="./results/R_D_no_color.png" id="img0" />
-          <img src="./results/time_R_no_color.png" id="img1" />
+          <div id="img_area">
+            <div class="swiper-container">
+              <div class="swiper-wrapper"></div>
+              <div class="swiper-pagination"></div>
+            </div>
+          </div>
         </div>
 
       </div>
     </div>
 
-    <footer class="toolbar toolbar-footer">
-      <h1 class="title"></h1>
+    <footer class="toolbar toolbar-footer" >
+      <div class="toolbar-actions">
+        <button type="button" class="btn btn-default" onclick="location.href='./index.html'">
+          New
+        </button>
+        <button type="button" class="btn btn-default pull-right" onclick="Delete()">
+          Delete
+        </button>
+<!--         <button type="button" class="btn btn-default pull-right" onclick="Download()">
+          Download
+        </button> -->
+      </div>
     </footer>
 
   </div>

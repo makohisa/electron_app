@@ -38,7 +38,7 @@ function showAboutDialog() {
 }
 
 function showDBWindow() {
-  settingsWindow = new BrowserWindow({width: 1200, height: 800})
+  settingsWindow = new BrowserWindow({width: 1100, height: 600})
   settingsWindow.loadURL(`file://${__dirname}/db.html`)
   settingsWindow.webContents.openDevTools()
   settingsWindow.show()
@@ -49,9 +49,9 @@ function showDBWindow() {
 
 function createMainWindow() {
   Menu.setApplicationMenu(menu)
-  mainWindow = new BrowserWindow({width: 1200, height: 800})
+  mainWindow = new BrowserWindow({width: 1100, height: 740})
   mainWindow.loadURL(`file://${__dirname}/index.html`)
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
   mainWindow.on('closed', function() {
     mainWindow = null
   })

@@ -26,28 +26,31 @@ import util
 import json
 
 
-# data setting ###########################
+# data setting ###########################################################
 
 argvs = sys.argv
 argc = len(argvs)
 
-rawdata_path = argvs[1]
-S = float(argvs[2])
+project_name = argvs[1]
+rawdata_path = argvs[2]
 
 results_path = 'results'
 
 with open('./data.json') as data_file:    
     group_data = json.load(data_file)
 
-#####################################
+##########################################################################
 
 
-# path setting #########################
+
+# path setting ###########################################################
+
 abs_path = os.path.abspath(os.path.dirname(__file__))
 
 results_path = os.path.join(abs_path, results_path)
+results_path = os.path.join(results_path, project_name)
 if os.path.isdir(results_path) is False:
-    os.mkdir(results_path)
+    os.makedirs(results_path)
     
 watercontent_file = 'time_R.csv'
 watercontent_path = os.path.join(results_path, watercontent_file)
@@ -63,8 +66,11 @@ RK_color_path = os.path.join(results_path, 'R_D_color')
 RK_nocolor_path = os.path.join(results_path, 'R_D_no_color')
 
 param_path =  os.path.join(results_path, 'param.csv')
-diff_coef_path = os.path.join(results_path, 'diff_coef.csv')
-diffcoef_img_path = os.path.join(results_path, 'diff_coef')
+diffcoef_path = os.path.join(results_path, 'diffcoef.csv')
+diffcoef_img_path = os.path.join(results_path, 'diffcoef')
+
+##########################################################################
+
 
 #dpi設定
 fine=300
@@ -77,13 +83,12 @@ dt=1*np.exp(-9223372036854775808)
 rawdata_df=pd.read_csv(rawdata_path)
 
 #csvファイルから読み込んだデータを編集(dataframe : data_df)
-data_df, groups, days ,weight = util.arrange(rawdata_df, dt, S)
+util.arrange(rawdata_df, dt)
+data_df, groups, days ,weight = util.arrange(rawdata_df, dt)
+data_df = data_df.dropna()
 
 #legendを設定
 legends_dict = util.make_legends(group_data)
-print(legends_dict)
-
-# In[72]:
 
 def watercontent(data_df, days, color, legends_dict):
     watercontent_df = pd.DataFrame(index=days, columns=groups)
@@ -101,7 +106,10 @@ def watercontent(data_df, days, color, legends_dict):
                        line_x = df.index, line_y = df['ratio'], color=color, watercontent=True, legends_dict=legends_dict)
         
         plt.xlim([0, max(days)+1])
-        plt.ylim([0, 1])
+        if min(df['ratio']) < 0.5 :
+            plt.ylim([0, 1])
+        else:
+            plt.ylim([0.5, 1])
 
         plt.title('Relationship between time and R')
         plt.xlabel('time [day]')
@@ -117,7 +125,6 @@ def watercontent(data_df, days, color, legends_dict):
 
 
 watercontent_df = watercontent(data_df, days, color=False, legends_dict=legends_dict)
-print(watercontent_df)
 watercontent_df.to_csv(watercontent_path)
 
 
@@ -142,7 +149,8 @@ def curve_fitting(data, group, parameter_initial):
     paramater_optimal, covariance = scipy.optimize.curve_fit(
         func, 
         xdata, 
-        ydata
+        ydata,
+        bounds=(0, [5., 5., 1.])
     )
     
     # show graph
@@ -186,6 +194,7 @@ def functionK():
     f2 = simplify(f2.subs([(R, 1)])-f2.subs([(R, R)]))
 
     fK = simplify((2*f2)/f1)
+
     return fK
 
 
@@ -198,6 +207,8 @@ def solve_K(data, group, param_df, diffcoef_df, fK, color, legends_dict):
             (b, float(param_df.loc[group,['b']])),
             (f, float(param_df.loc[group,['f']]))
         ])
+    print(fK)
+    print(fK2)
 
     # 含水率が0.5のときの拡散係数
     diffcoef_df.loc[group,['Formula']] = fK.subs([
@@ -205,6 +216,7 @@ def solve_K(data, group, param_df, diffcoef_df, fK, color, legends_dict):
             (b, float(param_df.loc[group,['b']])),
             (f, float(param_df.loc[group,['f']]))
         ])
+    print(param_df.loc[group,['f']])
     diffcoef_df.loc[group,['D(R=0.5)']] = fK2.subs([(R, 0.5)]).round(4)
     diffcoef_df.loc[group,['D(R=0.99)']] = fK2.subs([(R, 0.99)]).round(4)
 
@@ -225,6 +237,7 @@ def solve_K(data, group, param_df, diffcoef_df, fK, color, legends_dict):
 #             show_graph_all(group=group, point_x = xdata, point_y = ydata, line_x = x, line_y = y, color=color)
 
 #         <本文用>
+
     util.show_graph_all(group=group, point_x = xdata, point_y = ydata, line_x = x, line_y = y, legends_dict=legends_dict, color=color)
 
     plt.title('Relationship between R and K')
@@ -268,6 +281,35 @@ def make_diffcoef_img(diffcoef_df):
         plt.text(x,y,y, ha='center', va='bottom')
     plt.savefig(diffcoef_img_path, dpi=fine)
 
+
+def make_cost_vs_diffcoef_df(diffcoef_df):    
+    # 含水率が0.5のときの拡散係数のDataFrame作成(dataframe : diffcoef_df)
+    diffcoef_df = pd.DataFrame( index = groups, columns=['Formula', 'D(R=0.5)','D(R=0.99)'] )
+    fK=functionK()
+
+    plt.clf()
+    for group in groups:
+        group_df = util.select_data(src_df=data_df, days=days, group=group)
+        solve_K(group_df, group, param_df, diffcoef_df, fK, color=color, legends_dict=legends_dict)
+            
+    make_diffcoef_img(diffcoef_df)
+
+    return diffcoef_df
+
+def make_diffcoef_img(diffcoef_df):
+    plt.clf()
+    d_array = diffcoef_df['D(R=0.5)']
+    left = np.arange(1, len(groups)+1)
+
+    plt.bar(left, d_array, tick_label=groups, align="center")
+    plt.title("D at R = 0.5")
+    plt.xlabel("group")
+    plt.ylabel("D [cm2/day]")
+
+    for x,y in zip(left, d_array):
+        plt.text(x,y,y, ha='center', va='bottom')
+    plt.savefig(diffcoef_img_path, dpi=fine)
+
 # In[79]:
 
 param_df=make_param_df(data_df, days)
@@ -278,4 +320,6 @@ diffcoef_df=make_diffcoef_df(data_df, param_df, color=False, legends_dict=legend
 param_df.to_csv(param_path)
 
 #拡散係数をcsvファイルに出力
-diffcoef_df.to_csv(diff_coef_path)
+diffcoef_df.to_csv(diffcoef_path)
+
+print("end")

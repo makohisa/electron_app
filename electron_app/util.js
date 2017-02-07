@@ -1,24 +1,26 @@
 var exec = require('child_process').exec;
 const remote = require('electron').remote;
 var fs = require('fs');
+const $ = require('jquery')
 
 module.exports = {
-	analysis: function(datafile ,S) {
+	analysis: function(project_name,datafile) {
 		var child;
-		child = exec("python analysis.py " + datafile + " " + S , function (error, stdout, stderr) {
+		var deferred = new $.Deferred();
+		child = exec("python analysis.py " + project_name + " " + datafile , function (error, stdout, stderr) {
 			if (stderr !== null ){
 		    	console.log('stdout: ' + stdout);
+		    	if (stdout == "end") {
+		    		deferred.resolve()
+		    	}
 				if (stderr !== null ){
 					console.log('stderr: ' + stderr);
-					return false
 				}else if (error !== null ){
 					console.log('exec error: ' + error);
-					return false
-				}else{
-					return true
 				};
 			};
 		});
+		return deferred.promise()
 	},
 	json_save: function(jsondata) {
 		var json_path = "./data.json"

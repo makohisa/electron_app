@@ -1,0 +1,2 @@
+# pythonなかったらpyhton入れる
+# 

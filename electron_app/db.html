@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <title>Data</title>
+  <title>Treatment Selecter</title>
   <link href="./photon/css/photon.min.css" rel="stylesheet" type="text/css">
 
   <style>
@@ -12,24 +12,24 @@
     }
   </style>
   <script>
-    const $ = require('jquery')
-    var util = require('./util')
+    // const $ = require('jquery')
+    // var util = require('./util')
 
-    var files = ['./results/diff_coef.csv', './results/param.csv', './results/time_R.csv']
-    console.log(files)
-    for (var i = files.length - 1; i >= 0; i--) {
-      var text
-      text = util.getCSV(files[i])
-      console.log(text)
+    // var files = ['./results/diff_coef.csv', './results/param.csv', './results/time_R.csv']
+    // console.log(files)
+    // for (var i = files.length - 1; i >= 0; i--) {
+    //   var text
+    //   text = util.getCSV(files[i])
+    //   console.log(text)
+    // }
+    function Delete(argument) {
+      // body...
     }
 
   </script>
 </head>
 <body>
   <div class="window">
-    <!-- <header class="toolbar toolbar-header">
-      <h1 class="title">Card DB Manager</h1>
-    </header> -->
 
     <div class="window-content">
       <div class="pane-group">
@@ -41,13 +41,13 @@
               Insert
             </a>
 
-            <a class="nav-group-item unactive" href="./show.html">
+            <a class="nav-group-item active" href="./show.html">
               <span class="icon icon-signal"></span>
               Show
             </span>
             </a>
 
-<!--             <a class="nav-group-item active" href="./db.html">
+<!--             <a class="nav-group-item unactive" href="./db.html">
               <span class="icon icon-folder"></span>
               Data
             </span>
@@ -64,20 +64,26 @@
         </div>
 
         <div class="pane">
-            <table class="table-striped" id="table">
-              
-            </table>
-          </div>
+          <img src="./results/R_D_no_color.png" id="img0" />
+          <img src="./results/time_R_no_color.png" id="img1" />
+        </div>
 
       </div>
+        <table></table>
     </div>
 
-    <footer class="toolbar toolbar-footer">
-      <h1 class="title"></h1>
+    <footer class="toolbar toolbar-footer" >
+      <div class="toolbar-actions">
+        <button type="button" class="btn btn-default" onclick="location.href='./index.html'">
+          New
+        </button>
+        <button type="button" class="btn btn-primary pull-right" onclick="Delete()">
+          Delete
+        </button>
+      </div>
     </footer>
 
   </div>
-
 
 </body>
 </html>
