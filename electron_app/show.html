@@ -32,16 +32,55 @@
         -webkit-align-items: center;
         align-items: center;
     }
+    .color-5 {
+      background: #CC0000;
+    }
+    .color-4 {
+      background: #FF6232;
+    }
+    .color-3 {
+      background: #FF6232;
+    }
+    .color-2 {
+      background: #EFA18F;
+    }
+    .color-1 {
+      background: #EFA18F;
+    }
+    .color0 {
+      background: rgba(0,0,0,0);
+    }
+    .color1 {
+      background: #CFE2D4;
+    }
+    .color2 {
+      background: #CFE2D4;
+    }
+    .color3 {
+      background: #9DD88C;
+    }
+    .color4 {
+      background: #9DD88C;
+    }
+    .color5 {
+      background: #22C350;
+    }
   </style>
+  <!-- Insert this line above script imports  -->
+  <script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 
   <script src="./node_modules/swiper/dist/js/swiper.min.js" ></script>
   <script>
-    const $ = require('jquery')
+    window.jQuery = window.$ = require('jquery');
     var util = require('./util')
     const fs = require('fs-extra');
     const resultsFolder = './results/'
     var iconv = require('iconv-lite');
     var csv = require('csv');
+    window.jQuery = window.$;
+  </script>
+  <script src="./tablesorter.js"></script>
+  <script>
 
     var project_names = new Object()
 
@@ -119,10 +158,23 @@
     function makePane(project_name, callback) {
       var promise = showImgs(project_name);
 
+      makeTable(project_name);
+
+      promise.then(function(){
+        var swiper = new Swiper('.swiper-container', {
+          pagination: '.swiper-pagination',
+          paginationClickable: true
+        });
+      })
+    }
+
+    function makeTable(project_name) {
       var obj = JSON.parse(fs.readFileSync('./data.json', 'utf8'));
       var controllPerformance = 0;
       var controllCostPerformance = 0;
+      var controll = "";
       var R = 0.2;
+      $("#overview_table").empty();
 
       var rs = fs.createReadStream('./results/'+project_name+'/diffcoef.csv')
         .pipe(iconv.decodeStream('SJIS'))
@@ -137,6 +189,7 @@
           if (obj[csvList[0]+"_line"] === "c") {
             controllPerformance = performance;
             controllCostPerformance =  performance/cost;
+            controll = csvList[0];
           }
         }
       }));
@@ -148,29 +201,30 @@
 
           var insert = "";
           insert += '<tr>'
-          insert += '<td>'+csvList[0]+'</td>';
-          insert += '<td>'+Math.round((performance-controllPerformance)*10)+'</td>';
-          insert += '<td>'+Math.round(((parseFloat(performance)/cost)-controllCostPerformance)*10)+'</td>';
+          if (csvList[0] === controll) {
+            insert += '<td>'+csvList[0]+'(controll)</td>';
+          } else {
+            insert += '<td>'+csvList[0]+'</td>';
+          }
+          insert += '<td class="color'+Math.round((performance-controllPerformance)*10)+'">'+Math.round((performance-controllPerformance)*10)+'</td>';
+          insert += '<td class="color'+Math.round(((parseFloat(performance)/cost)-controllCostPerformance)*10)+'">'+Math.round(((parseFloat(performance)/cost)-controllCostPerformance)*10)+'</td>';
+          // insert += '<td>'+performance+'</td>';
+          // insert += '<td>'+(parseFloat(performance)/cost)+'</td>';
           insert += '</tr>';
-          $("#overview_table").append(insert);
+          $("#overview_table").append(insert); 
         }
       }));
 
-
-
-
-      promise.then(function(){
-        var swiper = new Swiper('.swiper-container', {
-          pagination: '.swiper-pagination',
-          paginationClickable: true
-        });
-      })
+      setTimeout(function() {
+        $("#myTable").tablesorter();
+      },500)      
     }
 
     function changePane(new_project_name) {
       // body...
       var deferred = new $.Deferred();
-      project_name = new_project_name
+      project_name = new_project_name;
+
       if (project_name == new_project_name) {
         deferred.resolve()
       }
@@ -215,7 +269,7 @@
         alert("Canceled")
       }
     }
-
+ 
       // document.querySelector("#file").addEventListener('change', function(e) {
       //   if (window.File) {
       //     var input = document.querySelector('#file').files[0];
@@ -257,6 +311,8 @@
       // });
 
   </script>
+
+  <script>if (window.module) module = window.module;</script>
 </head>
 <body>
 
@@ -278,14 +334,14 @@
         </div>
 
         <div class="pane">
-          <div>
-            <div>Overview</div>
-            <table class="table-striped">
+          <div style="width:90%;margin-left:5%;">
+            <div style="padding:3px;background:#FFEE88;border:1px solid #FF9900;margin-bottom:15px;">Overview</div>
+            <table id="myTable" class="table-striped tablesorter">
               <thead>
                 <tr>
-                  <td>GROUP</td>
-                  <td>PERFORMANCE</td>
-                  <td>COST-PERFORMANCE</td>
+                  <th>group</th>
+                  <th>performance</th>
+                  <th>cost performance</th>
                 </tr>
               </thead>  
               <tbody id="overview_table">
@@ -293,10 +349,10 @@
             </table>
           </div>
           <div id="img_area">
-            <div>Detail</div>
-            <div class="swiper-container">
+            <div style="padding:3px;width:90%;background:#FFEE88;border:1px solid #FF9900;margin-left:5%;margin-top:50px;">Detail</div>
+            <div style="overflow:visible;" class="swiper-container">
               <div class="swiper-wrapper"></div>
-              <div class="swiper-pagination"></div>
+              <div style="bottom:-20px;" class="swiper-pagination"></div>
             </div>
           </div>
         </div>
@@ -319,7 +375,8 @@
     </footer>
 
   </div>
-
+<script>
+</script>
 
 </body>
 </html>
